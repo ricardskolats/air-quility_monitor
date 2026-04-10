@@ -1,0 +1,115 @@
+# Air Quality Monitor - Application Kconfig
+
+mainmenu "Air Quality Monitor Configuration"
+
+menu "Sensor Configuration"
+
+config AQM_SENSOR_INTERVAL_SEC
+    int "Sensor read interval in seconds"
+    default 300
+    help
+      Interval between sensor readings (default: 5 minutes = 300 seconds).
+
+endmenu
+
+menu "Buffer Configuration"
+
+config AQM_BUFFER_SIZE
+    int "Maximum number of samples in ring buffer"
+    default 128
+    help
+      Maximum number of sensor samples that can be buffered.
+      Each sample is approximately 16 bytes.
+
+config AQM_BUFFER_HIGH_WATER_PERCENT
+    int "High water mark percentage for early upload trigger"
+    default 80
+    range 50 95
+    help
+      When buffer fill level reaches this percentage, trigger an upload
+      even if the upload interval has not elapsed.
+
+endmenu
+
+menu "Upload Configuration"
+
+config AQM_UPLOAD_INTERVAL_SEC
+    int "Upload interval in seconds"
+    default 1800
+    help
+      Interval between scheduled uploads (default: 30 minutes = 1800 seconds).
+
+config AQM_UPLOAD_RETRY_COUNT
+    int "Maximum upload retry attempts"
+    default 3
+    help
+      Number of retry attempts before giving up on the current upload.
+
+config AQM_UPLOAD_RETRY_BACKOFF_SEC
+    int "Initial backoff delay between retries in seconds"
+    default 30
+    help
+      Initial delay before first retry. Doubles on each subsequent retry.
+
+endmenu
+
+menu "MQTT Configuration"
+
+config AQM_MQTT_BROKER_HOSTNAME
+    string "MQTT broker hostname"
+    default "mqtt.example.com"
+    help
+      Hostname or IP address of the MQTT broker.
+
+config AQM_MQTT_BROKER_PORT
+    int "MQTT broker port"
+    default 8883
+    help
+      Port number for MQTT broker (8883 for TLS, 1883 for unencrypted).
+
+config AQM_MQTT_CLIENT_ID_PREFIX
+    string "MQTT client ID prefix"
+    default "aqm_"
+    help
+      Prefix for MQTT client ID. Device IMEI will be appended.
+
+config AQM_MQTT_TOPIC_DATA
+    string "MQTT topic for sensor data"
+    default "devices/%s/telemetry"
+    help
+      Topic for publishing sensor data. %s will be replaced with device ID.
+
+config AQM_MQTT_TOPIC_LOGS
+    string "MQTT topic for device logs"
+    default "devices/%s/logs"
+    help
+      Topic for publishing diagnostic logs. %s will be replaced with device ID.
+
+config AQM_MQTT_QOS
+    int "MQTT Quality of Service level"
+    default 1
+    range 0 2
+    help
+      QoS 0 = At most once, QoS 1 = At least once, QoS 2 = Exactly once.
+
+endmenu
+
+menu "Logging Configuration"
+
+config AQM_LOG_BUFFER_SIZE
+    int "Number of persistent log entries"
+    default 32
+    help
+      Maximum number of log entries stored in flash for remote diagnostics.
+
+config AQM_LOG_UPLOAD_ON_CONNECT
+    bool "Upload logs on every MQTT connection"
+    default y
+    help
+      Automatically upload persistent logs when connecting to the broker.
+
+endmenu
+
+module = AQM
+module-str = Air Quality Monitor
+source "subsys/logging/Kconfig.template.log_config"
